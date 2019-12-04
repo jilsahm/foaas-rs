@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use crate::operation::Operation;
 
-lazy_static! {
+lazy_static!(
     static ref ROUTES: HashMap<&'static str, (Operation, &'static str)> = {
         let mut r = HashMap::new();
         r.insert("version", ("/version".parse().unwrap(), "Version 2.0.0"));
         r
     };
-}
+);
 
 pub(crate) fn get_route(route: &str) -> Option<Operation> {
     ROUTES.get(route).map(|value| value.0.clone())

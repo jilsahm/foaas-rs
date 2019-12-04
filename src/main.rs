@@ -1,6 +1,7 @@
 extern crate hyper;
 extern crate futures;
 extern crate regex;
+
 #[macro_use]
 extern crate lazy_static;
 
@@ -13,6 +14,7 @@ use hyper::service::service_fn;
 use hyper::rt::Future;
 
 mod insult_service;
+mod route;
 mod router;
 mod operation;
 mod insult;
