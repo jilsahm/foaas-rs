@@ -2,7 +2,7 @@ use std::str::FromStr;
 use regex::Regex;
 use serde::Serialize;
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub(crate) struct Operation {
   name: String,
   url: String,
@@ -13,7 +13,7 @@ impl FromStr for Operation {
   type Err = String;
 
   fn from_str(url: &str) -> Result<Self, Self::Err> {
-    let pattern = Regex::new("^/[a-zA-Z]+((/:[a-z]+)*/:from)?&").expect("Invalid pattern");
+    let pattern = Regex::new("^/[a-zA-Z]+((/:[a-zA-Z]+)*/:from)?$").expect("Invalid pattern");
     if !pattern.is_match(url) {
       return Err(format!("{} must match the pattern {:?}", url, pattern));
     }
@@ -24,7 +24,8 @@ impl FromStr for Operation {
       .enumerate()
       .for_each(|(i, s)| {
         match i {
-          0 => name.push_str(s),
+          0 => (),
+          1 => name.push_str(s),
           _ => fields.push(s.to_string()),
         }
       });
@@ -38,9 +39,9 @@ mod tests {
   #[test]
   fn test_operation_from_str_success() {
     let o = "/pulp/:language/:from".parse::<Operation>();
-    let expected = Operation { 
+    let expected = Operation { name: "pulp".to_string(), url: "/pulp/:language/:from".to_string(), fields: vec![":language".to_string(), ":from".to_string()] };
     assert!(o.is_ok());
-    assert_eq!("".to_string(), o.unwrap().name);
+    assert_eq!(expected, o.unwrap());
   }
   #[test]
   fn test_operation_from_str_failure() {
