@@ -37,12 +37,6 @@ impl FromStr for ContentType {
     }
 }
 
-pub(crate) trait Route {
-    fn resolve(&self, content_type: ContentType, fields: &Vec<String>) -> String;
-}
-
-pub(crate) struct VersionRoute;
-
 #[cfg(test)]
 mod tests {
     use super::ContentType;

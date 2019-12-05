@@ -14,7 +14,7 @@ use hyper::service::service_fn;
 use hyper::rt::Future;
 
 mod insult_service;
-mod route;
+mod content_type;
 mod router;
 mod operation;
 mod insult;

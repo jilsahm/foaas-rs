@@ -1,8 +1,9 @@
 use std::fmt::{Display, Formatter};
 use serde::{Serialize};
+use crate::content_type::ContentType;
 
 #[derive(Serialize)]
-pub struct Insult {
+pub(crate) struct Insult {
   message: String,
   subtitle: String,
 }
@@ -11,13 +12,21 @@ impl Insult {
   pub fn new(message: String, subtitle: String) -> Self {
     Insult { message, subtitle, }
   }
-  pub fn to_html(&self) -> String {
+  fn to_html(&self) -> String {
     format!("\
       <div>\
         <h1>{}</h1>\
         <p>{}</p>\
       </div>\
     ", self.message, self.subtitle)
+  }
+  pub(crate) fn render(&self, content_type: ContentType) -> String {
+    match content_type {
+      ContentType::PlainText => format!("{}", self),
+      ContentType::Html => self.to_html(),
+      ContentType::Json => serde_json::to_string(&self).unwrap_or("{}".into()),
+      ContentType::Xml => serde_xml_rs::to_string(&self).unwrap_or("<Insult></Insult>".into()),
+    }
   }
 }
 
