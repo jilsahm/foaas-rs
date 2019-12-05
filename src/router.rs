@@ -1,3 +1,4 @@
+use log;
 use crate::content_type::ContentType;
 use crate::insult::Insult;
 use crate::operation::Operation;
@@ -7,6 +8,7 @@ lazy_static!(
         let mut r: Vec<Box<dyn Route>> = Vec::new();
         r.push(Box::new(VersionRoute::new("2.0.0".into())));
         r.push(Box::new(OperationsRoute::new()));
+        r.push(Box::new(InsultRoute::new("/anyway/:company/:from", "Who the fuck are you anyway, :company, why are you stirring up so much trouble, and, who pays you? - :from".into())));
         r
     };
 );
@@ -62,6 +64,40 @@ impl Route for VersionRoute {
     }
     fn matches_uri(&self, uri: &str) -> bool {
         uri == "/version"
+    }
+}
+
+struct InsultRoute {
+    operation: Operation,
+    template: String,
+}
+
+impl InsultRoute {
+    fn new(uri: &str, template: String) -> Self {
+        InsultRoute {
+            operation: uri.parse().map_err(|e| error!("{}", e)).unwrap(),
+            template,
+        }
+    }
+}
+
+impl Route for InsultRoute {
+    fn get_operation(&self) -> Operation {
+        self.operation.clone()
+    }
+    fn resolve(&self, content_type: ContentType, fields: &Vec<String>) -> String {
+        let mut message = self.template.clone();
+        self.operation.fields
+            .iter()
+            .zip(fields.iter())
+            .for_each(|(name, value)| message = message.replace(name, value));
+        Insult::new(message, "".into()).render(content_type)
+    }
+    fn matches_uri(&self, uri: &str) -> bool {
+        true
+    }
+    fn matches_fields(&self, field_count: u32) -> bool {
+        self.operation.fields.len() == field_count as usize
     }
 }
 

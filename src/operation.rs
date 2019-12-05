@@ -4,9 +4,9 @@ use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub(crate) struct Operation {
-  name: String,
-  url: String,
-  fields: Vec<String>,
+  pub name: String,
+  pub url: String,
+  pub fields: Vec<String>,
 }
 
 impl FromStr for Operation {
@@ -26,7 +26,7 @@ impl FromStr for Operation {
         match i {
           0 => (),
           1 => name.push_str(s),
-          _ => fields.push(s.to_string()),
+          _ => fields.push(s[1..].to_string()),
         }
       });
     Ok(Operation { name, url: url.to_string(), fields, })

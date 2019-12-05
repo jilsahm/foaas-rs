@@ -9,16 +9,30 @@ extern crate lazy_static;
 extern crate log;
 extern crate env_logger;
 
-use hyper::Server;
+use futures::{future, Future};
+use hyper::{Body, Response, Request, Method, StatusCode, Server};
 use hyper::service::service_fn;
-use hyper::rt::Future;
 
-mod insult_service;
 mod content_type;
 mod router;
 mod operation;
 mod insult;
-use crate::insult_service::insult;
+
+type BoxFut = Box<dyn Future<Item=Response<Body>, Error=hyper::Error> + Send>;
+
+fn insult(req: Request<Body>) -> BoxFut {
+    let mut response = Response::new(Body::empty());
+    match (req.method(), req.uri().path()) {
+        (&Method::GET, _) => {            
+            info!("{:?}", req.uri().path().split("/").collect::<Vec<&str>>());
+            *response.body_mut() = Body::from("Some");
+        },
+        _ => {
+            *response.status_mut() = StatusCode::NOT_FOUND;
+        },
+    };
+    Box::new(future::ok(response))
+}
 
 fn main() {
     env_logger::init();
