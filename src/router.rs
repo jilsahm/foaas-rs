@@ -95,17 +95,23 @@ impl Route for InsultRoute {
         Insult::new(message, subtitle).render(content_type)
     }
     fn matches_uri(&self, uri: &str) -> bool {
-        false
+        uri.split("/")
+            .collect::<Vec<&str>>()
+            .iter()
+            .skip(1)
+            .next()
+            .map(|part| *part == self.operation.name)
+            .unwrap_or_else(|| false)
     }
     fn matches_fields(&self, field_count: u32) -> bool {
         self.operation.fields.len() == field_count as usize
     }
 }
 
-pub(crate) fn get_route(route: &str) -> Option<Operation> {
+pub(crate) fn get_route(uri: &str) -> Option<Operation> {
     ROUTES
         .iter()
-        .filter(|r| r.matches_uri(route))
+        .filter(|r| r.matches_uri(uri))
         .map(|o| o.get_operation())
         .next()
 }
@@ -125,5 +131,15 @@ mod tests {
     fn test_get_operations() {
         let route = OperationsRoute::new();
         assert!(route.resolve(ContentType::Json, &vec![]).contains("\"url\":\"/operations\""));
+    }
+    #[test]
+    fn test_insult_route_matches_uri_success() {
+        let route = InsultRoute::new("/pulp/:language/:from", ":language motherfucker, do you speak it?".into());
+        assert!(route.matches_uri("/pulp"));
+    }
+    #[test]
+    fn test_insult_route_matches_uri_failure() {
+        let route = InsultRoute::new("/pulp/:language/:from", ":language motherfucker, do you speak it?".into());
+        assert!(!route.matches_uri("/pulp2"));
     }
 }
