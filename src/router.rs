@@ -85,16 +85,17 @@ impl Route for InsultRoute {
     fn get_operation(&self) -> Operation {
         self.operation.clone()
     }
-    fn resolve(&self, content_type: ContentType, fields: &Vec<String>) -> String {
+    fn resolve(&self, content_type: ContentType, params: &Vec<String>) -> String {
         let mut message = self.template.clone();
+        let subtitle = params.last().map(|sub| sub.clone()).unwrap_or_else(|| "".into());
         self.operation.fields
             .iter()
-            .zip(fields.iter())
-            .for_each(|(name, value)| message = message.replace(name, value));
-        Insult::new(message, "".into()).render(content_type)
+            .zip(params.iter())
+            .for_each(|(field, value)| message = message.replace(&field.field, &value));
+        Insult::new(message, subtitle).render(content_type)
     }
     fn matches_uri(&self, uri: &str) -> bool {
-        true
+        false
     }
     fn matches_fields(&self, field_count: u32) -> bool {
         self.operation.fields.len() == field_count as usize
@@ -123,7 +124,6 @@ mod tests {
     #[test]
     fn test_get_operations() {
         let route = OperationsRoute::new();
-        println!("{}", route.resolve(ContentType::Json, &vec![]));
-        assert!(false)
+        assert!(route.resolve(ContentType::Json, &vec![]).contains("\"url\":\"/operations\""));
     }
 }

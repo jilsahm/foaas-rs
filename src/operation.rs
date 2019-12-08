@@ -1,12 +1,13 @@
 use std::str::FromStr;
 use regex::Regex;
 use serde::Serialize;
+use crate::field::Field;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub(crate) struct Operation {
   pub name: String,
   pub url: String,
-  pub fields: Vec<String>,
+  pub fields: Vec<Field>,
 }
 
 impl FromStr for Operation {
@@ -18,7 +19,7 @@ impl FromStr for Operation {
       return Err(format!("{} must match the pattern {:?}", url, pattern));
     }
     let mut name = String::with_capacity(16);
-    let mut fields: Vec<String> = Vec::with_capacity(2);
+    let mut fields: Vec<Field> = Vec::with_capacity(2);
     url.split("/")
       .into_iter()
       .enumerate()
@@ -26,7 +27,7 @@ impl FromStr for Operation {
         match i {
           0 => (),
           1 => name.push_str(s),
-          _ => fields.push(s[1..].to_string()),
+          _ => fields.push(Field::new(&s[1..]).unwrap()),
         }
       });
     Ok(Operation { name, url: url.to_string(), fields, })
@@ -35,11 +36,11 @@ impl FromStr for Operation {
 
 #[cfg(test)]
 mod tests {
-  use super::Operation;
+  use super::{Field, Operation};
   #[test]
   fn test_operation_from_str_success() {
     let o = "/pulp/:language/:from".parse::<Operation>();
-    let expected = Operation { name: "pulp".to_string(), url: "/pulp/:language/:from".to_string(), fields: vec![":language".to_string(), ":from".to_string()] };
+    let expected = Operation { name: "pulp".to_string(), url: "/pulp/:language/:from".to_string(), fields: vec![Field::new("language").unwrap(), Field::new("from").unwrap()] };
     assert!(o.is_ok());
     assert_eq!(expected, o.unwrap());
   }
