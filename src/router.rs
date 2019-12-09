@@ -1,4 +1,5 @@
 use log;
+use hyper::{Body, Request, Response, StatusCode};
 use crate::content_type::ContentType;
 use crate::insult::Insult;
 use crate::operation::Operation;
@@ -17,8 +18,8 @@ trait Route: Send + Sync {
     fn get_operation(&self) -> Operation;
     fn resolve(&self, content_type: ContentType, fields: &Vec<String>) -> String;
     fn matches_uri(&self, uri: &str) -> bool;
-    fn matches_fields(&self, field_count: u32) -> bool {
-        field_count == 0u32
+    fn matches_fields(&self, field_count: usize) -> bool {
+        field_count == 0usize
     }
 }
 
@@ -103,17 +104,43 @@ impl Route for InsultRoute {
             .map(|part| *part == self.operation.name)
             .unwrap_or_else(|| false)
     }
-    fn matches_fields(&self, field_count: u32) -> bool {
-        self.operation.fields.len() == field_count as usize
+    fn matches_fields(&self, field_count: usize) -> bool {
+        self.operation.fields.len() == field_count
     }
 }
 
-pub(crate) fn get_route(uri: &str) -> Option<Operation> {
+fn get_route(uri: &str) -> Option<&Box<dyn Route>> {
     ROUTES
         .iter()
         .filter(|r| r.matches_uri(uri))
-        .map(|o| o.get_operation())
         .next()
+}
+
+fn get_params(uri: &str) -> Vec<String> {
+    uri.split("/")
+        .skip(2)
+        .map(|part| part.to_string())
+        .collect::<Vec<String>>()
+}
+
+pub(crate) fn prepare_response(req: &Request<Body>, res: &mut Response<Body>) {
+    match get_route(req.uri().path()) {
+        Some(route) => {
+            let params = get_params(req.uri().path());
+            if route.matches_fields(params.len()) {
+                match ContentType::from_request(&req) {
+                    Ok(content_type) => {
+                        res.headers_mut().append("Content-Type", content_type.to_header_value());
+                        *res.body_mut() = route.resolve(content_type, &params).into();
+                    },
+                    Err(_) => *res.status_mut() = StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                }
+            } else {
+                *res.status_mut() = StatusCode::BAD_REQUEST;
+            }
+        },
+        None => *res.status_mut() = StatusCode::NOT_FOUND,
+    }   
 }
 
 #[cfg(test)]
@@ -125,7 +152,7 @@ mod tests {
     }
     #[test]
     fn test_get_route_none() {
-        assert_eq!(None, get_route("invalid"));
+        assert!(get_route("invalid").is_none());
     }
     #[test]
     fn test_get_operations() {
@@ -141,5 +168,11 @@ mod tests {
     fn test_insult_route_matches_uri_failure() {
         let route = InsultRoute::new("/pulp/:language/:from", ":language motherfucker, do you speak it?".into());
         assert!(!route.matches_uri("/pulp2"));
+    }
+    #[test]
+    fn test_get_params() {
+        let params = get_params("/hello/world");
+        assert_eq!(1usize, params.len());
+        assert_eq!(Some(&"world".to_string()), params.get(0));
     }
 }

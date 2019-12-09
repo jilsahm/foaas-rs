@@ -19,6 +19,7 @@ mod field;
 mod router;
 mod operation;
 mod insult;
+use crate::content_type::ContentType;
 
 type BoxFut = Box<dyn Future<Item=Response<Body>, Error=hyper::Error> + Send>;
 
@@ -35,21 +36,13 @@ fn setup_logger() {
 }
 
 fn insult(req: Request<Body>) -> BoxFut {
-    let mut response = Response::new(Body::empty());
+    let mut res = Response::new(Body::empty());
     match (req.method(), req.uri().path()) {
-        (&Method::GET, _) => {            
-            info!("{:?}", req.uri().path().split("/").collect::<Vec<&str>>());
-            *response.status_mut() = router::get_route(req.uri().path())
-                .map(|_route| {
-                    *response.body_mut() = Body::from("Some");
-                    StatusCode::OK
-                }).unwrap_or_else(|| StatusCode::NOT_FOUND);            
-        },
-        _ => {
-            *response.status_mut() = StatusCode::METHOD_NOT_ALLOWED;
-        },
+        (&Method::GET, _) => router::prepare_response(&req, &mut res),
+        _ => *res.status_mut() = StatusCode::METHOD_NOT_ALLOWED,
     };
-    Box::new(future::ok(response))
+    info!("Sending response with status code {}", res.status());
+    Box::new(future::ok(res))
 }
 
 fn main() {
