@@ -14,7 +14,7 @@ impl ContentType {
     pub(crate) fn to_header_value(&self) -> HeaderValue {
         match self {
             ContentType::PlainText => "text/plain".parse().unwrap(),
-            ContentType::Html => "test/html".parse().unwrap(),
+            ContentType::Html => "text/html".parse().unwrap(),
             ContentType::Json => "application/json".parse().unwrap(),
             ContentType::Xml => "application/xml".parse().unwrap(),
         }

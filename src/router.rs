@@ -3,13 +3,14 @@ use hyper::{Body, Request, Response, StatusCode};
 use crate::content_type::ContentType;
 use crate::insult::Insult;
 use crate::operation::Operation;
+use crate::rendering::Render;
 
 lazy_static!(
     static ref ROUTES: Vec<Box<dyn Route>> = {
         let mut r: Vec<Box<dyn Route>> = Vec::new();
         r.push(Box::new(VersionRoute::new("2.0.0".into())));
         r.push(Box::new(OperationsRoute::new()));
-        r.push(Box::new(InsultRoute::new("/anyway/:company/:from", "Who the fuck are you anyway, :company, why are you stirring up so much trouble, and, who pays you? - :from".into())));
+        r.push(Box::new(InsultRoute::new("/anyway/:company/:from", "Who the fuck are you anyway, :company, why are you stirring up so much trouble, and, who pays you?".into())));
         r
     };
 );
@@ -92,7 +93,9 @@ impl Route for InsultRoute {
         self.operation.fields
             .iter()
             .zip(params.iter())
-            .for_each(|(field, value)| message = message.replace(&field.field, &value));
+            .for_each(|(field, value)| {
+                message = message.replace(&format!(":{}", &field.field), &value);
+            });
         Insult::new(message, subtitle).render(content_type)
     }
     fn matches_uri(&self, uri: &str) -> bool {
