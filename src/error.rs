@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use hyper::StatusCode;
 use serde::Serialize;
-use crate::rendering::Render;
+use crate::rendering::{BulmaColor, Render};
 
 #[derive(Serialize)]
 pub(crate) struct ErrorPage {
@@ -19,14 +19,9 @@ impl ErrorPage {
 }
 
 impl Render for ErrorPage {
-    fn to_html(&self) -> String {
-        format!("\
-            <div>\
-            <h1>{}</h1>\
-            <p>{}</p>\
-            </div>\
-        ", self.code, self.text)
-    }
+    fn color(&self) -> BulmaColor { BulmaColor::Dark }
+    fn title(&self) -> String { self.code.to_string() }
+    fn subtitle(&self) -> String { self.text.clone() }
 }
 
 impl Display for ErrorPage {

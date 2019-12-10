@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use serde::{Serialize};
-use crate::rendering::Render;
+use crate::rendering::{BulmaColor, Render};
 
 #[derive(Serialize)]
 pub(crate) struct Insult {
@@ -15,15 +15,9 @@ impl Insult {
 }
 
 impl Render for Insult {
-  fn to_html(&self) -> String {
-    format!("\
-      <section class=\"section\">\
-      <div class=\"container\">\
-        <h1 class=\"title\">{}</h1>\
-        <p class=\"subtitle\">{}</p>\
-      </div>\
-    ", self.message, self.subtitle)
-  }
+  fn color(&self) -> BulmaColor { BulmaColor::Primary }
+  fn title(&self) -> String { self.message.clone() }
+  fn subtitle(&self) -> String { self.subtitle.clone() }
 }
 
 impl Display for Insult {
@@ -34,14 +28,15 @@ impl Display for Insult {
 
 #[cfg(test)]
 mod tests {
+  use crate::content_type::ContentType;
   use super::{Insult, Render};
 
   #[test]
   fn test_insult_to_html() {
     let insult = Insult::new("Rust, motherfucker, do you speak it?".to_string(), "UnitTest".to_string());
-    let insult = insult.to_html();
-    assert!(insult.contains("<h1>Rust"));
-    assert!(insult.contains("UnitTest</p>"));
+    let insult = insult.render(ContentType::Html);
+    assert!(insult.contains("<h1 class=\"title\">Rust"));
+    assert!(insult.contains("<h2 class=\"subtitle\">UnitTest</h2>"));
   }
 
   #[test]

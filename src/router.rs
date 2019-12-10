@@ -1,6 +1,7 @@
-use log;
+use std::fmt::Display;
 use hyper::{Body, Request, Response, StatusCode};
 use crate::content_type::ContentType;
+use crate::error::ErrorPage;
 use crate::insult::Insult;
 use crate::operation::Operation;
 use crate::rendering::Render;
@@ -11,6 +12,7 @@ lazy_static!(
         r.push(Box::new(VersionRoute::new("2.0.0".into())));
         r.push(Box::new(OperationsRoute::new()));
         r.push(Box::new(InsultRoute::new("/anyway/:company/:from", "Who the fuck are you anyway, :company, why are you stirring up so much trouble, and, who pays you?".into())));
+        r.push(Box::new(InsultRoute::new("/pulp/:language/:from", ":language, motherfucker, do you speak it?".into())));
         r
     };
 );
@@ -21,6 +23,9 @@ trait Route: Send + Sync {
     fn matches_uri(&self, uri: &str) -> bool;
     fn matches_fields(&self, field_count: usize) -> bool {
         field_count == 0usize
+    }
+    fn content_type(&self, req: &Request<Body>) -> Result<ContentType, String> {
+        Ok(ContentType::from_request(req)?)
     }
 }
 
@@ -46,6 +51,9 @@ impl Route for OperationsRoute {
     }
     fn matches_uri(&self, uri: &str) -> bool {
         uri == "/operations"
+    }
+    fn content_type(&self, _: &Request<Body>) -> Result<ContentType, String> {
+        Ok(ContentType::Json)
     }
 }
 
@@ -131,19 +139,26 @@ pub(crate) fn prepare_response(req: &Request<Body>, res: &mut Response<Body>) {
         Some(route) => {
             let params = get_params(req.uri().path());
             if route.matches_fields(params.len()) {
-                match ContentType::from_request(&req) {
+                match route.content_type(&req) {
                     Ok(content_type) => {
                         res.headers_mut().append("Content-Type", content_type.to_header_value());
                         *res.body_mut() = route.resolve(content_type, &params).into();
                     },
-                    Err(_) => *res.status_mut() = StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                    Err(what) => create_error_page(req, res, StatusCode::UNSUPPORTED_MEDIA_TYPE, &what),
                 }
             } else {
-                *res.status_mut() = StatusCode::BAD_REQUEST;
+                create_error_page(req, res, StatusCode::BAD_REQUEST, &"Invalid params".to_string());
             }
         },
-        None => *res.status_mut() = StatusCode::NOT_FOUND,
+        None => create_error_page(req, res, StatusCode::NOT_FOUND, &"Not found".to_string()),
     }   
+}
+
+fn create_error_page<T: Display>(req: &Request<Body>, res: &mut Response<Body>, code: StatusCode, what: &T) {
+    let content_type = ContentType::from_request(req).unwrap_or(ContentType::Json);
+    *res.status_mut() = code;
+    res.headers_mut().append("Content-Type", content_type.to_header_value());
+    *res.body_mut() = ErrorPage::new(code, what).render(content_type).into();
 }
 
 #[cfg(test)]
