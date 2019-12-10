@@ -14,7 +14,7 @@ impl FromStr for Operation {
   type Err = String;
 
   fn from_str(url: &str) -> Result<Self, Self::Err> {
-    let pattern = Regex::new("^/[a-zA-Z]+((/:[a-zA-Z]+)*/:from)?$").expect("Invalid pattern");
+    let pattern = Regex::new("^/[a-zA-Z\\-]+(/:[a-zA-Z]+)*$").expect("Invalid pattern");
     if !pattern.is_match(url) {
       return Err(format!("{} must match the pattern {:?}", url, pattern));
     }
