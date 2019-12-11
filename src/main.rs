@@ -89,7 +89,7 @@ fn main() {
             let server = Server::bind(&addr)
                 .serve(|| service_fn(insult))
                 .map_err(|e| error!("server error: {}", e));
-            info!("Running at port {}", addr.port(), addr.a);
+            info!("Running at {}", addr);
             hyper::rt::run(server);
         }
         Err(e) => {
