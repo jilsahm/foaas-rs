@@ -1,7 +1,8 @@
 # foaas-rs
 
 Rust implementation for the [FOAAS](https://github.com/tomdionysus/foaas) webservice.
-[![Build Status](https://travis-ci.com/jilsahm/foaas.svg?branch=master)](https://travis-ci.com/jilsahm/foaas)
+
+[![Build Status](https://travis-ci.com/jilsahm/foaas-rs.svg?branch=master)](https://travis-ci.com/jilsahm/foaas-rs)
 
 ## Building and running
 
