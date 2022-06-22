@@ -1,5 +1,6 @@
 use std::fmt::Display;
-use hyper::{Body, Request, Response, StatusCode};
+use warp::hyper::{Request, Body, Response, StatusCode};
+
 use crate::content_type::ContentType;
 use crate::error::ErrorPage;
 use crate::insult::Insult;

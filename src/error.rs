@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
-use hyper::StatusCode;
 use serde::Serialize;
+use warp::hyper::StatusCode;
 use crate::rendering::{BulmaColor, Render};
 
 #[derive(Serialize)]

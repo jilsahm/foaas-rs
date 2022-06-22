@@ -1,5 +1,3 @@
-extern crate hyper;
-extern crate futures;
 extern crate regex;
 
 #[macro_use]
@@ -15,9 +13,7 @@ use std::{
     net::{SocketAddr, AddrParseError},
 };
 
-use futures::{future, Future};
-use hyper::{Body, Response, Request, Method, StatusCode, Server};
-use hyper::service::service_fn;
+use warp::{hyper::{Response, Body, Request, StatusCode, Method}, Filter};
 
 mod content_type;
 mod error;
@@ -26,8 +22,6 @@ mod insult;
 mod operation;
 mod rendering;
 mod router;
-
-type BoxFut = Box<dyn Future<Item=Response<Body>, Error=hyper::Error> + Send>;
 
 #[derive(Debug, PartialEq)]
 enum ArgsError {
@@ -72,25 +66,23 @@ where
     }
 }
 
-fn insult(req: Request<Body>) -> BoxFut {
+async fn insult(req: Request<Body>) -> Response<Body> {
     let mut res = Response::new(Body::empty());
     match (req.method(), req.uri().path()) {
         (&Method::GET, _) => router::prepare_response(&req, &mut res),
         _ => *res.status_mut() = StatusCode::METHOD_NOT_ALLOWED,
     };
     info!("Sending response with status code {}", res.status());
-    Box::new(future::ok(res))
+    res
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     setup_logger();
     match parse_address(env::args()) {
         Ok(addr) => {
-            let server = Server::bind(&addr)
-                .serve(|| service_fn(insult))
-                .map_err(|e| error!("server error: {}", e));
-            info!("Running at {}", addr);
-            hyper::rt::run(server);
+            let api = warp::any().and_then(insult);
+            warp::serve(api).bind(addr).await;
         }
         Err(e) => {
             error!("{}", e);
