@@ -10,10 +10,10 @@ extern crate env_logger;
 use std::{
     env,
     fmt::{Display, Formatter},
-    net::{SocketAddr, AddrParseError},
+    net::{SocketAddr, AddrParseError}, convert::Infallible,
 };
 
-use warp::{hyper::{Response, Body, Request, StatusCode, Method}, Filter};
+use warp::{hyper::{Response, Body, Request, StatusCode, Method}, Filter, path::FullPath};
 
 mod content_type;
 mod error;
@@ -66,14 +66,11 @@ where
     }
 }
 
-async fn insult(req: Request<Body>) -> Response<Body> {
+async fn insult(path: FullPath, content_type: String) -> Result<impl warp::Reply, Infallible> {
     let mut res = Response::new(Body::empty());
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, _) => router::prepare_response(&req, &mut res),
-        _ => *res.status_mut() = StatusCode::METHOD_NOT_ALLOWED,
-    };
+    router::prepare_response(path, content_type, &mut res);
     info!("Sending response with status code {}", res.status());
-    res
+    Ok(res)
 }
 
 #[tokio::main]
@@ -81,7 +78,7 @@ async fn main() {
     setup_logger();
     match parse_address(env::args()) {
         Ok(addr) => {
-            let api = warp::any().and_then(insult);
+            let api = warp::any().and(warp::path::full()).and(warp::header::<String>("Accept")).and_then(insult);
             warp::serve(api).bind(addr).await;
         }
         Err(e) => {
