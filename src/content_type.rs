@@ -1,7 +1,6 @@
 use std::str::FromStr;
-use hyper::Request;
-use hyper::header::HeaderValue;
 use regex::Regex;
+use warp::{http::HeaderValue, hyper::{Request, Body}};
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum ContentType {
@@ -19,7 +18,7 @@ impl ContentType {
             ContentType::Xml => "application/xml".parse().unwrap(),
         }
     }
-    pub(crate) fn from_request(req: &Request<hyper::Body>) -> Result<Self, String> {
+    pub(crate) fn from_request(req: &Request<Body>) -> Result<Self, String> {
         Ok(req.headers()
             .get_all("Accept")
             .iter()
@@ -50,6 +49,8 @@ impl FromStr for ContentType {
 
 #[cfg(test)]
 mod tests {
+    use warp::hyper::{Request, Body};
+
     use super::ContentType;
 
     #[test]
@@ -69,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_content_type_from_request_success() {
-        let req = hyper::Request::builder().header("Accept", "text/plain;charset=UTF-8").body(hyper::Body::empty()).unwrap();
+        let req = Request::builder().header("Accept", "text/plain;charset=UTF-8").body(Body::empty()).unwrap();
         let content_type = ContentType::from_request(&req);
         assert!(content_type.is_ok());
         assert_eq!(ContentType::PlainText, content_type.unwrap());
@@ -77,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_content_type_from_request_failure() {
-        let req = hyper::Request::builder().body(hyper::Body::empty()).unwrap();
+        let req = Request::builder().body(Body::empty()).unwrap();
         let content_type = ContentType::from_request(&req);
         assert!(content_type.is_err());
     }

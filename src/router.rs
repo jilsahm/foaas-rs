@@ -1,5 +1,8 @@
 use std::fmt::Display;
-use hyper::{Body, Request, Response, StatusCode};
+use std::str::FromStr;
+use warp::hyper::{Request, Body, Response, StatusCode};
+use warp::path::FullPath;
+
 use crate::content_type::ContentType;
 use crate::error::ErrorPage;
 use crate::insult::Insult;
@@ -224,28 +227,28 @@ fn get_params(uri: &str) -> Vec<String> {
         .collect::<Vec<String>>()
 }
 
-pub(crate) fn prepare_response(req: &Request<Body>, res: &mut Response<Body>) {
-    match get_route(req.uri().path()) {
+pub(crate) fn prepare_response(path: FullPath, content_type: String, res: &mut Response<Body>) {
+    match get_route(path.as_str()) {
         Some(route) => {
-            let params = get_params(req.uri().path());
+            let params = get_params(path.as_str());
             if route.matches_fields(params.len()) {
-                match route.content_type(&req) {
+                match ContentType::from_str(&content_type) {
                     Ok(content_type) => {
                         res.headers_mut().append("Content-Type", content_type.to_header_value());
                         *res.body_mut() = route.resolve(content_type, &params).into();
                     },
-                    Err(what) => create_error_page(req, res, StatusCode::UNSUPPORTED_MEDIA_TYPE, &what),
+                    Err(what) => create_error_page(content_type, res, StatusCode::UNSUPPORTED_MEDIA_TYPE, &what),
                 }
             } else {
-                create_error_page(req, res, StatusCode::BAD_REQUEST, &"Invalid params".to_string());
+                create_error_page(content_type, res, StatusCode::BAD_REQUEST, &"Invalid params".to_string());
             }
         },
-        None => create_error_page(req, res, StatusCode::NOT_FOUND, &"Not found".to_string()),
+        None => create_error_page(content_type, res, StatusCode::NOT_FOUND, &"Not found".to_string()),
     }   
 }
 
-fn create_error_page<T: Display>(req: &Request<Body>, res: &mut Response<Body>, code: StatusCode, what: &T) {
-    let content_type = ContentType::from_request(req).unwrap_or(ContentType::Json);
+fn create_error_page<T: Display>(content_type: String, res: &mut Response<Body>, code: StatusCode, what: &T) {
+    let content_type = ContentType::from_str(&content_type).unwrap_or(ContentType::Json);
     *res.status_mut() = code;
     res.headers_mut().append("Content-Type", content_type.to_header_value());
     *res.body_mut() = ErrorPage::new(code, what).render(content_type).into();
