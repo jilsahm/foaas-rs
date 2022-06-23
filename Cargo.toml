@@ -2,9 +2,11 @@
 name = "foaas-rs"
 version = "0.1.0"
 authors = ["jil sahm"]
+description = "Rust implementation of the FOAAS service"
 edition = "2018"
 
 [dependencies]
+clap = { version = "3.2.6", features = ["derive", "env"] }
 dotenv = "0.15.0"
 env_logger = "0.9.0"
 lazy_static = "1.4.0"
