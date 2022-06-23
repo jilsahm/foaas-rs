@@ -13,7 +13,7 @@ use std::{
     net::{SocketAddr, AddrParseError}, convert::Infallible,
 };
 
-use warp::{hyper::{Response, Body, Request, StatusCode, Method}, Filter, path::FullPath};
+use warp::{hyper::{Response, Body}, Filter, path::FullPath};
 
 mod content_type;
 mod error;
@@ -44,18 +44,6 @@ impl Display for ArgsError {
     }
 }
 
-fn setup_logger() {
-    const LOG_VAR: &'static str = "RUST_LOG";
-    match env::var(LOG_VAR) {
-        Ok(_) => env_logger::init(),
-        Err(e) => { 
-            env::set_var(LOG_VAR, "info");
-            env_logger::init();
-            info!("Failed to read environment variable {} because {}, set log level to info", LOG_VAR, e);
-        }
-    };
-}
-
 fn parse_address<T>(args: T) -> Result<SocketAddr, ArgsError> 
 where
     T: Iterator<Item = String>,
@@ -75,7 +63,8 @@ async fn insult(path: FullPath, content_type: String) -> Result<impl warp::Reply
 
 #[tokio::main]
 async fn main() {
-    setup_logger();
+    dotenv::dotenv().ok();
+    env_logger::init();
     match parse_address(env::args()) {
         Ok(addr) => {
             let api = warp::any().and(warp::path::full()).and(warp::header::<String>("Accept")).and_then(insult);
