@@ -1,6 +1,6 @@
 use std::fmt::{Formatter, Display};
 use serde::Serialize;
-use crate::content_type::ContentType;
+use super::content_type::ContentType;
 
 macro_rules! html_skeleton {
     () => ("\

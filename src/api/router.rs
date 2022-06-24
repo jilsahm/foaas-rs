@@ -3,11 +3,11 @@ use std::str::FromStr;
 use warp::hyper::{Request, Body, Response, StatusCode};
 use warp::path::FullPath;
 
-use crate::content_type::ContentType;
-use crate::error::ErrorPage;
-use crate::insult::Insult;
-use crate::operation::Operation;
-use crate::rendering::Render;
+use super::content_type::ContentType;
+use super::error::ErrorPage;
+use super::insult::Insult;
+use super::operation::Operation;
+use super::rendering::Render;
 
 lazy_static!(
     static ref ROUTES: Vec<Box<dyn Route>> = {

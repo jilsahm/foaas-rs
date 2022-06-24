@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use serde::Serialize;
 use warp::hyper::StatusCode;
-use crate::rendering::{BulmaColor, Render};
+use super::rendering::{BulmaColor, Render};
 
 #[derive(Serialize)]
 pub(crate) struct ErrorPage {

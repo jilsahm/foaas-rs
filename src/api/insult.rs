@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use serde::{Serialize};
-use crate::rendering::{BulmaColor, Render};
+use super::rendering::{BulmaColor, Render};
 
 #[derive(Serialize)]
 pub(crate) struct Insult {
@@ -28,7 +28,7 @@ impl Display for Insult {
 
 #[cfg(test)]
 mod tests {
-  use crate::content_type::ContentType;
+  use crate::api::content_type::ContentType;
   use super::{Insult, Render};
 
   #[test]

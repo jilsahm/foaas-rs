@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use regex::Regex;
 use serde::Serialize;
-use crate::field::Field;
+use super::field::Field;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub(crate) struct Operation {
