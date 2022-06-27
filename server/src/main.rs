@@ -1,5 +1,5 @@
 use clap::Parser;
-use foaas_rs::{run, FoaasConfiguration};
+use foaas_server_rs::{run, FoaasConfiguration};
 
 #[tokio::main]
 async fn main() {
