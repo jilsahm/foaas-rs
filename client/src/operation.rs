@@ -10,7 +10,23 @@ pub enum Operation {
     Operations,
 
     #[clap(help = "Will return content of the form 'Absolutely fucking Not, :company, No Fucking Way! - :from'")]
-    Absolutely { #[clap(long)] company: String, #[clap(long)] from: String,  }
+    Absolutely { #[clap(long)] company: String, #[clap(long)] from: String, },
+
+    #[clap(help = "Will return content of the form 'Fuck you, asshole. - :from'")]
+    Asshole { #[clap(long)] from: String, },
+
+    #[clap(help = "Will return content of the form 'This is Fucking Awesome. - :from'")]
+    Awesome { #[clap(long)] from: String, },
+
+    #[clap(help = "Will return content of the form ':name, back the fuck off. - :from'")]
+    Back { #[clap(long)] name: String, #[clap(long)] from: String, },
+    
+    #[clap(help = "Will return content of the form 'Eat a bag of fucking dicks. - :from'")]
+    Bag { #[clap(long)] from: String, },
+    
+    #[clap(help = "Will return content of the form 'Fucking :name is a fucking pussy. I'm going to fucking bury that guy, I have done it before, and I will do it again. I'm going to fucking kill :company. - :from'")]
+    Ballmer { #[clap(long)] name: String, #[clap(long)] company: String, #[clap(long)] from: String, },
+
 }
 
 impl Operation {
@@ -19,7 +35,12 @@ impl Operation {
         match self {
             Self::Version => "version".to_string(),
             Self::Operations => "operations".to_string(),
-            Self::Absolutely { from, company } => format!("absolutely/{}/{}", company, from),
+            Self::Absolutely { from, company } => format!("absolutely/{company}/{from}", company = company, from = from),
+            Self::Asshole { from } => format!("asshole/{from}", from = from),
+            Self::Awesome { from } => format!("awesome/{from}", from = from),
+            Self::Back { name, from } => format!("back/{name}/{from}", name = name, from = from),
+            Self::Bag { from } => format!("bag/{from}", from = from),
+            Self::Ballmer { name, company, from } => format!("ballmer/{name}/{company}/{from}", name = name, company = company, from = from),
         }
     }
 }

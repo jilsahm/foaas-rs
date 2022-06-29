@@ -84,6 +84,26 @@ impl FoaasClient {
     pub async fn absolutely(&self, company: &str, from: &str) -> Result<String, FoaasError> {
         self.send(Operation::Absolutely { company: company.to_string(), from: from.to_string(), }).await
     }
+
+    pub async fn asshole(&self, from: &str) -> Result<String, FoaasError> {
+        self.send(Operation::Asshole { from: from.to_string(), }).await
+    }
+
+    pub async fn awesome(&self, from: &str) -> Result<String, FoaasError> {
+        self.send(Operation::Awesome { from: from.to_string(), }).await
+    }
+
+    pub async fn back(&self, name: &str, from: &str) -> Result<String, FoaasError> {
+        self.send(Operation::Back { name: name.to_string(), from: from.to_string(), }).await
+    }
+
+    pub async fn bag(&self, from: &str) -> Result<String, FoaasError> {
+        self.send(Operation::Bag { from: from.to_string(), }).await
+    }
+
+    pub async fn ballmer(&self, name: &str, company: &str, from: &str) -> Result<String, FoaasError> {
+        self.send(Operation::Ballmer { name: name.to_string(), company: company.to_string(), from: from.to_string(), }).await
+    }
 }
 
 #[cfg(test)] 
