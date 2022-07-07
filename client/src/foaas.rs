@@ -104,6 +104,14 @@ impl FoaasClient {
     pub async fn ballmer(&self, name: &str, company: &str, from: &str) -> Result<String, FoaasError> {
         self.send(Operation::Ballmer { name: name.to_string(), company: company.to_string(), from: from.to_string(), }).await
     }
+
+    pub async fn bday(&self, name: &str, from: &str) -> Result<String, FoaasError> {
+        self.send(Operation::Bday { name: name.to_string(), from: from.to_string(), }).await
+    }
+
+    pub async fn because(&self, from: &str) -> Result<String, FoaasError> {
+        self.send(Operation::Because { from: from.to_string() }).await
+    }
 }
 
 #[cfg(test)] 

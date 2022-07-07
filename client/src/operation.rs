@@ -27,6 +27,12 @@ pub enum Operation {
     #[clap(help = "Will return content of the form 'Fucking :name is a fucking pussy. I'm going to fucking bury that guy, I have done it before, and I will do it again. I'm going to fucking kill :company. - :from'")]
     Ballmer { #[clap(long)] name: String, #[clap(long)] company: String, #[clap(long)] from: String, },
 
+    #[clap(help = "Will return content of the form 'Happy Fucking Birthday, :name. - :from'")]
+    Bday { #[clap(long)] name: String, #[clap(long)] from: String},
+
+    #[clap(help = "Will return content of the form 'Why? Because fuck you, that's why. - :from'")]
+    Because { #[clap(long)] from: String },
+	
 }
 
 impl Operation {
@@ -41,6 +47,8 @@ impl Operation {
             Self::Back { name, from } => format!("back/{name}/{from}", name = name, from = from),
             Self::Bag { from } => format!("bag/{from}", from = from),
             Self::Ballmer { name, company, from } => format!("ballmer/{name}/{company}/{from}", name = name, company = company, from = from),
+            Self::Bday { name, from } => format!("bday/{name}/{from}", name = name, from = from),
+            Self::Because { from } => format!("because/{from}", from = from),
         }
     }
 }
